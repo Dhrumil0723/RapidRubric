@@ -1,0 +1,9 @@
+# Normalize line endings to LF on commit (cross-platform team)
+* text=auto eol=lf
+
+# Binary files — no LF normalization
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.ico binary
+*.pdf binary
