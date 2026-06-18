@@ -13,8 +13,20 @@ async function authenticate(req, res, next) {
     return res.status(401).json({ message: 'Invalid or expired token' })
   }
 
+  // Role comes from the DB, not the JWT — prevents client-side privilege escalation.
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('id, full_name, email, role')
+    .eq('id', user.id)
+    .single()
+
+  if (profileError || !profile) {
+    return res.status(401).json({ message: 'User profile not found' })
+  }
+
   req.user = user
-  req.role = user.user_metadata?.role
+  req.profile = profile
+  req.role = profile.role
   next()
 }
 
