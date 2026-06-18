@@ -8,15 +8,16 @@ mirror_frontend_github:
   stage: mirror_frontend
   image: alpine:latest
   before_script:
-    - apk add --no-cache git openssh
+    - apk add --no-cache git git-subtree openssh
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
-    - printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+    - cp "$SSH_PRIVATE_KEY" ~/.ssh/id_ed25519
     - chmod 600 ~/.ssh/id_ed25519
+    - ssh-keygen -y -f ~/.ssh/id_ed25519
     - ssh-keyscan github.com >> ~/.ssh/known_hosts
     - chmod 644 ~/.ssh/known_hosts
   script:
-    - git remote add github git@github.com:NoobKingu/RapidRubric_Frontend.git
-    - git push github $(git subtree split --prefix=frontend):main --force
+    - git remote add github_frontend git@github.com:NoobKingu/RapidRubric_Frontend.git
+    - git push github_frontend $(git subtree split --prefix=frontend):main --force
   only:
     - main
