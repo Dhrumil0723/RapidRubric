@@ -18,6 +18,6 @@ mirror_frontend_github:
     - chmod 644 ~/.ssh/known_hosts
   script:
     - git remote add github_frontend git@github.com:NoobKingu/RapidRubric_Frontend.git
-    - git push github_frontend $(git subtree split --prefix=frontend):main --force
+    - git push github_frontend $(git subtree split --prefix=frontend):refs/heads/main --force
   only:
     - main
