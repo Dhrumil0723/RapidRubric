@@ -1,17 +1,44 @@
 @import "tailwindcss";
 
 @theme {
-  /* Primary palette — academic blue used for buttons, links, active states */
-  --color-primary-50: #eff6ff;
-  --color-primary-100: #dbeafe;
-  --color-primary-200: #bfdbfe;
-  --color-primary-300: #93c5fd;
-  --color-primary-400: #60a5fa;
-  --color-primary-500: #3b82f6;
-  --color-primary-600: #2563eb;
-  --color-primary-700: #1d4ed8;
-  --color-primary-800: #1e40af;
-  --color-primary-900: #1e3a8a;
+  /* Primary palette — RapidRubric indigo (Figma: Primary #4F46E5, Primary dark #4338CA) */
+  --color-primary-50: #eef2ff;
+  --color-primary-100: #e0e7ff;
+  --color-primary-200: #c7d2fe;
+  --color-primary-300: #a5b4fc;
+  --color-primary-400: #818cf8;
+  --color-primary-500: #6366f1;
+  --color-primary-600: #4f46e5;
+  --color-primary-700: #4338ca;
+  --color-primary-800: #3730a3;
+  --color-primary-900: #312e81;
+
+  /* Accent — violet (Figma: Accent #7C3AED) */
+  --color-accent-50: #f5f3ff;
+  --color-accent-100: #ede9fe;
+  --color-accent-200: #ddd6fe;
+  --color-accent-500: #8b5cf6;
+  --color-accent-600: #7c3aed;
+  --color-accent-700: #6d28d9;
+
+  /* Sidebar — deep indigo (Figma: Sidebar #1E1B4B) */
+  --color-sidebar: #1e1b4b;
+  --color-sidebar-hover: #2a2660;
+  --color-sidebar-muted: #a5a3c7;
+
+  /* Semantic status (Figma: Success #15803D, Warning #B45309, Danger #B91C1C, Info #1D4ED8) */
+  --color-success-100: #dcfce7;
+  --color-success-600: #16a34a;
+  --color-success-700: #15803d;
+  --color-warning-100: #ffedd5;
+  --color-warning-600: #d97706;
+  --color-warning-700: #b45309;
+  --color-danger-100: #fee2e2;
+  --color-danger-600: #dc2626;
+  --color-danger-700: #b91c1c;
+  --color-info-100: #dbeafe;
+  --color-info-600: #2563eb;
+  --color-info-700: #1d4ed8;
 
   /* Role accent — TA green */
   --color-ta-50: #f0fdf4;
@@ -28,9 +55,9 @@
   --color-instructor-700: #b45309;
 
   /* Feedback status colors */
-  --color-status-pending: #f59e0b;
-  --color-status-released: #22c55e;
-  --color-status-draft: #94a3b8;
+  --color-status-pending: #b45309;
+  --color-status-released: #15803d;
+  --color-status-draft: #7c3aed;
 
   /* Typography */
   --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
@@ -40,13 +67,13 @@
   --spacing-18: 4.5rem;
   --spacing-22: 5.5rem;
 
-  /* Border radius */
-  --radius-card: 0.75rem;
-  --radius-input: 0.375rem;
+  /* Border radius (Figma cards: 14px) */
+  --radius-card: 0.875rem;
+  --radius-input: 0.5rem;
 
   /* Shadow tokens */
-  --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-  --shadow-dropdown: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-card: 0 1px 3px 0 rgb(15 23 42 / 0.06), 0 1px 2px -1px rgb(15 23 42 / 0.08);
+  --shadow-dropdown: 0 10px 15px -3px rgb(15 23 42 / 0.1), 0 4px 6px -4px rgb(15 23 42 / 0.1);
 }
 
 /* Base resets */
@@ -57,7 +84,7 @@
 body {
   margin: 0;
   font-family: var(--font-sans);
-  background-color: #f8fafc;
+  background-color: #f1f5f9;
   color: #0f172a;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;

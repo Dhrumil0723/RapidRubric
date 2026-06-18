@@ -1,6 +1,7 @@
 import { Navigate, Outlet } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
-import Navbar from './Navbar'
+import Sidebar from './Sidebar'
+import Topbar from './Topbar'
 
 export default function ProtectedLayout({ allowedRoles }) {
   const { user, role, loading } = useAuth()
@@ -8,7 +9,7 @@ export default function ProtectedLayout({ allowedRoles }) {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="w-6 h-6 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-6 h-6 border-2 border-primary-600 border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
@@ -17,11 +18,14 @@ export default function ProtectedLayout({ allowedRoles }) {
   if (allowedRoles && !allowedRoles.includes(role)) return <Navigate to="/unauthorized" replace />
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50">
-      <Navbar />
-      <main className="flex-1 px-6 py-8 max-w-7xl mx-auto w-full">
-        <Outlet />
-      </main>
+    <div className="min-h-screen flex bg-slate-100">
+      <Sidebar />
+      <div className="flex-1 flex flex-col min-w-0">
+        <Topbar />
+        <main className="flex-1 px-6 py-6 max-w-7xl w-full mx-auto">
+          <Outlet />
+        </main>
+      </div>
     </div>
   )
 }

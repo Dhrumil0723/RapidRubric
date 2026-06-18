@@ -1,54 +1,47 @@
-import { Link } from 'react-router-dom'
 import { useQueue } from '../../features/ta/hooks/useQueue'
 import Card from '../../components/ui/Card'
-import Badge from '../../components/ui/Badge'
+import Button from '../../components/ui/Button'
+import SubmissionsTable from '../../components/ta/SubmissionsTable'
 
 export default function TADashboard() {
-  const { pending, released, loading, error } = useQueue()
+  const { queue, pending, released, returned, avgAiScore, maxScore, loading, error } = useQueue()
 
-  if (loading) return <p className="text-slate-500 text-sm">Loading...</p>
-  if (error) return <p className="text-sm text-red-600">{error}</p>
+  if (loading) {
+    return (
+      <div className="flex justify-center py-20">
+        <div className="w-6 h-6 border-2 border-primary-600 border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
+  }
+  if (error) return <Card><p className="text-sm text-danger-700">{error}</p></Card>
+
+  const stats = [
+    { label: 'Pending review', value: pending.length, color: 'text-warning-700' },
+    { label: 'Released', value: released.length, color: 'text-success-700' },
+    { label: 'Avg. AI score', value: avgAiScore != null ? `${avgAiScore} / ${maxScore}` : '—', color: 'text-primary-700' },
+    { label: 'Returned', value: returned.length, color: 'text-danger-700' },
+  ]
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-slate-900">Review Queue</h1>
-        <Badge status="pending">{pending.length} pending</Badge>
+      <div className="flex justify-end">
+        <Button variant="secondary">Filter</Button>
       </div>
 
-      {pending.length > 0 && (
-        <div className="space-y-3">
-          <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide">Awaiting Review</h2>
-          {pending.map((s) => (
-            <Card key={s.id} className="flex items-center justify-between">
-              <div>
-                <p className="font-medium text-slate-900 text-sm">{s.student_name}</p>
-                <p className="text-sm text-slate-500">{s.assignment_title}</p>
-              </div>
-              <Link to={`/ta/review/${s.id}`} className="text-sm font-medium text-ta-600 hover:underline">Review →</Link>
-            </Card>
-          ))}
-        </div>
-      )}
+      {/* Stats */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {stats.map((s) => (
+          <Card key={s.label}>
+            <p className="text-sm text-slate-500 mb-1">{s.label}</p>
+            <p className={`text-3xl font-bold ${s.color}`}>{s.value}</p>
+          </Card>
+        ))}
+      </div>
 
-      {released.length > 0 && (
-        <div className="space-y-3">
-          <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide">Released</h2>
-          {released.map((s) => (
-            <Card key={s.id} className="flex items-center justify-between opacity-60">
-              <div>
-                <p className="font-medium text-slate-900 text-sm">{s.student_name}</p>
-                <p className="text-sm text-slate-500">{s.assignment_title}</p>
-              </div>
-              <Badge status="released">Released</Badge>
-            </Card>
-          ))}
-        </div>
-      )}
-
-      {pending.length === 0 && released.length === 0 && (
-        <Card><p className="text-slate-500 text-sm text-center py-8">Queue is empty.</p></Card>
-      )}
+      {/* Queue table */}
+      <Card>
+        <SubmissionsTable rows={queue} emptyText="No submissions assigned to you yet." />
+      </Card>
     </div>
   )
 }
