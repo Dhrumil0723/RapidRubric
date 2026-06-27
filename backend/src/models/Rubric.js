@@ -22,7 +22,7 @@ const Rubric = {
   },
 
   async findById(id) {
-    const { data, error } = await supabase.from('rubrics').select('*').eq('id', id).single()
+    const { data, error } = await supabase.from('rubrics').select('*').eq('id', id).maybeSingle()
     if (error) throw error
     return data
   },

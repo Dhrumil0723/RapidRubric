@@ -16,7 +16,7 @@ const AiFeedback = {
       .from('ai_feedback')
       .select('*')
       .eq('submission_id', submissionId)
-      .single()
+      .maybeSingle()
     if (error) throw error
     return data
   },

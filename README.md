@@ -1,95 +1,101 @@
 # RapidRubric
 
-# commit test
-Satwik Gorla
+**AI-assisted rubric grading and feedback platform for university writing courses.**
+CSCI 4177 / CSCI 5709 — Advanced Web Services · Group 1 · Dalhousie University.
 
-
-## Getting started
-
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
-
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
-
-## Add your files
-
-* [Create](https://docs.gitlab.com/user/project/repository/web_editor/#create-a-file) or [upload](https://docs.gitlab.com/user/project/repository/web_editor/#upload-a-file) files
-* [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
+RapidRubric speeds up grading by letting an AI make a first pass over each
+submission against the instructor's rubric, then routing that draft to a Teaching
+Assistant (TA) who reviews, edits, and deliberately releases the final grade and
+feedback. No AI output reaches a student before a TA signs off.
 
 ```
-cd existing_repo
-git remote add origin https://git.cs.dal.ca/dhgajjar/rapidrubric.git
-git branch -M main
-git push -uf origin main
+Student submits PDF → AI pre-grades → TA reviews & edits → TA releases → Student sees feedback
 ```
 
-## Integrate with your tools
+## Architecture
 
-* [Set up project integrations](https://git.cs.dal.ca/dhgajjar/rapidrubric/-/settings/integrations)
+| Tier | Tech | Hosting |
+|------|------|---------|
+| Frontend | React + Vite + Tailwind + React Router | Netlify |
+| Backend | Node.js + Express (REST) | Railway / Render |
+| Database & Storage | PostgreSQL + Storage (Supabase) | Supabase |
+| Auth | Supabase Auth (JWT) + bcrypt | — |
+| External | Anthropic Claude (grading), Resend (email) | — |
 
-## Collaborate with your team
+The backend is the only tier that holds secrets and the only one that talks to
+the database or external services.
 
-* [Invite team members and collaborators](https://docs.gitlab.com/user/project/members/)
-* [Create a new merge request](https://docs.gitlab.com/user/project/merge_requests/creating_merge_requests/)
-* [Automatically close issues from merge requests](https://docs.gitlab.com/user/project/issues/managing_issues/#closing-issues-automatically)
-* [Enable merge request approvals](https://docs.gitlab.com/user/project/merge_requests/approvals/)
-* [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
+## Repository layout
 
-## Test and Deploy
+```
+backend/                 Express API
+  src/
+    routes/              Express routers (auth, users, assignments, submissions, rubrics, ta, analytics)
+    controllers/         Request handlers + validation
+    models/              Supabase data-access layer
+    middleware/          authenticate (JWT) + requireRole (RBAC), errorHandler
+    services/            aiService (Claude/mock), pdfService (pdf-parse), emailService (Resend)
+    config/              Supabase clients (service-role + stateless auth)
+  supabase/migrations/   Database schema (source of truth for the deployment)
+  postman/               Importable Postman collection
+  seed.js                Dev seed (users, course, rubric, assignment)
+frontend/                React + Vite client
+database/                Portable schema + seed SQL (for inspection/grading)
+docs/                    ERD image + captured API evidence
+DEPLOYMENT.md            Deploy + Postman-screenshot runbook
+```
 
-Use the built-in continuous integration in GitLab.
+## Core feature API (summary)
 
-* [Get started with GitLab CI/CD](https://docs.gitlab.com/ci/quick_start/)
-* [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/user/application_security/sast/)
-* [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/topics/autodevops/requirements/)
-* [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/user/clusters/agent/)
-* [Set up protected environments](https://docs.gitlab.com/ci/environments/protected_environments/)
+Base path: `/api`. Protected routes require `Authorization: Bearer <JWT>`.
 
-***
+### Feature 1 — Draft Submission & File Upload (student)
+| Method | Route | Purpose |
+|---|---|---|
+| GET | `/api/assignments` | List open assignments for the student |
+| POST | `/api/submissions/:assignmentId` | Upload a PDF (multipart) |
+| GET | `/api/submissions` | List the student's submissions |
+| GET | `/api/submissions/feedback/:submissionId` | Read released feedback |
 
-# Editing this README
+### Feature 2 — Rubric Builder (instructor)
+| Method | Route | Purpose |
+|---|---|---|
+| GET | `/api/rubrics` | List the instructor's rubrics |
+| GET | `/api/rubrics/:id` | Get one rubric |
+| POST | `/api/rubrics` | Create a rubric |
+| PATCH | `/api/rubrics/:id` | Update a rubric (blocked once locked) |
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+### Feature 3 — TA Review & Approval Queue (TA)
+| Method | Route | Purpose |
+|---|---|---|
+| GET | `/api/ta/queue` | The TA's review queue |
+| GET | `/api/ta/:submissionId` | Submission + rubric + AI feedback |
+| POST | `/api/ta/:submissionId/release` | Edit scores and release to the student |
 
-## Suggestions for a good README
+### Security / auth
+| Method | Route | Purpose |
+|---|---|---|
+| POST | `/api/auth/register` | Register (validated; bcrypt + Supabase Auth) |
+| POST | `/api/auth/login` | Login → JWT |
+| POST | `/api/auth/logout` | Invalidate session |
+| GET | `/api/users/me` | Current user's safe profile |
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+Full request/response specs, the ERD, and the security discussion are in
+`Assignment2_RapidRubric_DhrumilGajjar_B01071041.docx`.
 
-## Name
-Choose a self-explaining name for your project.
+## Quick start (local)
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+```bash
+cd backend
+npm install
+supabase start && supabase db reset      # local Supabase via Docker
+# export SUPABASE_URL / keys from `supabase status -o env` into backend/.env
+node seed.js
+npm run dev                               # http://localhost:3001
+```
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+See **[DEPLOYMENT.md](DEPLOYMENT.md)** for cloud deployment and the Postman demo.
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+## Test logins (after seeding)
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
-
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
-
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
-
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
-
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
-
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
-
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
-
-## License
-For open source projects, say how it is licensed.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+`instructor@test.com` · `ta1@test.com` · `student1@test.com` · `student2@test.com` — password `Password123!`

@@ -1,10 +1,22 @@
 const { Resend } = require('resend')
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+const apiKey = process.env.RESEND_API_KEY
+const resend = apiKey ? new Resend(apiKey) : null
 const FROM = 'RapidRubric <noreply@rapidrubric.app>'
 
+// Notifications are best-effort: a delivery failure (or no configured key)
+// must never break the grading pipeline, so failures are logged, not thrown.
 async function sendEmail({ to, subject, html }) {
-  return resend.emails.send({ from: FROM, to, subject, html })
+  if (!resend) {
+    console.warn(`[email] RESEND_API_KEY not set — skipping email to ${to}`)
+    return { skipped: true }
+  }
+  try {
+    return await resend.emails.send({ from: FROM, to, subject, html })
+  } catch (err) {
+    console.error(`[email] Failed to send "${subject}" to ${to}:`, err.message)
+    return { error: err.message }
+  }
 }
 
 const templates = {

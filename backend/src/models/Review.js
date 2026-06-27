@@ -16,7 +16,7 @@ const Review = {
       .from('ta_reviews')
       .select('*')
       .eq('submission_id', submissionId)
-      .single()
+      .maybeSingle()
     if (error) throw error
     return data
   },

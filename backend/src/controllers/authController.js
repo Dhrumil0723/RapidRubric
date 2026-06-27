@@ -1,5 +1,5 @@
 const bcrypt = require("bcryptjs");
-const { supabase } = require("../config/supabase");
+const { supabase, supabaseAuth } = require("../config/supabase");
 
 const ALLOWED_ROLES = ["student", "ta", "instructor"];
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -96,8 +96,9 @@ async function login(req, res, next) {
       }
     }
 
-    // Get Supabase session (JWT) — required for all subsequent API calls
-    const { data, error: signInError } = await supabase.auth.signInWithPassword({
+    // Get Supabase session (JWT) — required for all subsequent API calls.
+    // Uses the dedicated stateless anon client so sign-ins never interfere.
+    const { data, error: signInError } = await supabaseAuth.auth.signInWithPassword({
       email,
       password,
     });

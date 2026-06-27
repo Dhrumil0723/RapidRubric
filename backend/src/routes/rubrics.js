@@ -5,6 +5,7 @@ const rubricController = require('../controllers/rubricController')
 const router = express.Router()
 
 router.get('/', authenticate, requireRole('instructor'), rubricController.list)
+router.get('/:id', authenticate, requireRole('instructor'), rubricController.getById)
 router.post('/', authenticate, requireRole('instructor'), rubricController.create)
 router.patch('/:id', authenticate, requireRole('instructor'), rubricController.update)
 
